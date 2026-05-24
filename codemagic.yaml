@@ -6,10 +6,8 @@ workflows:
       node: 18
       java: 17
     scripts:
-      - name: Install pnpm and Dependencies
-        script: |
-          npm install -g pnpm
-          pnpm install
+      - name: Install Dependencies
+        script: pnpm install
       - name: Expo Prebuild
         script: npx expo prebuild -p android --clean
       - name: Build APK
