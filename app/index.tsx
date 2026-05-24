@@ -1,73 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch } from 'react-native';
 import * as Speech from 'expo-speech';
 import Voice from '@react-native-voice/voice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
-  const [setupDone, setSetupDone] = useState(false);
-  const [aiName, setAiName] = useState('pfaai'); // डिफॉल्ट नाव
-  const [language, setLanguage] = useState('mr-IN'); // मराठी डिफॉल्ट
+  const [mode, setMode] = useState('voice'); // voice or chat
+  const [aiName, setAiName] = useState('PFAAI');
+  const [voiceType, setVoiceType] = useState('female'); // female, child, male
+  const [status, setStatus] = useState("Ready");
 
   useEffect(() => {
-    loadSettings();
-    Voice.onSpeechResults = (e) => {
-      const command = e.value ? e.value[0].toLowerCase() : "";
-      // जर कमांडमध्ये तुझं नाव असेल तरच ऐक
-      if (command.includes(aiName.toLowerCase())) {
-        Speech.speak("हो, मी ऐकतोय!", { language: language });
-        // इथे तू कमांड प्रोसेस करण्यासाठी फंक्शन कॉल करू शकतोस
-      }
+    // सेटअप लोड करणे
+    const loadData = async () => {
+      const name = await AsyncStorage.getItem('aiName');
+      if (name) setAiName(name);
     };
-  }, [aiName, language]);
+    loadData();
 
-  const loadSettings = async () => {
-    const name = await AsyncStorage.getItem('aiName');
-    const lang = await AsyncStorage.getItem('language');
-    if (name) setAiName(name.toLowerCase());
-    if (lang) setLanguage(lang);
-    if (name) setSetupDone(true);
+    Voice.onSpeechResults = (e) => {
+      const cmd = e.value[0].toLowerCase();
+      processCommand(cmd);
+    };
+  }, []);
+
+  const processCommand = (cmd) => {
+    if (cmd.includes("status")) {
+      Speech.speak("सध्या सिस्टम सुरळीत आहे आणि बॅकग्राउंड स्कॅनिंग चालू आहे.");
+    }
   };
-
-  const saveSettings = async (name, lang) => {
-    await AsyncStorage.setItem('aiName', name);
-    await AsyncStorage.setItem('language', lang);
-    setAiName(name.toLowerCase());
-    setLanguage(lang);
-    setSetupDone(true);
-  };
-
-  if (!setupDone) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Setup PFAAI</Text>
-        <TextInput placeholder="AI Name (e.g. Buddy)" onChangeText={setAiName} style={styles.input} />
-        {['en-US', 'mr-IN', 'hi-IN'].map((lang) => (
-          <TouchableOpacity key={lang} style={styles.button} onPress={() => saveSettings(aiName, lang)}>
-            <Text style={styles.btnText}>Language: {lang}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hi, I am {aiName}!</Text>
-      <Text style={styles.subtitle}>मी आता ऐकतोय. फक्त माझं नाव घे!</Text>
-      <TouchableOpacity style={styles.voiceBtn} onPress={() => Voice.start(language)}>
-        <Text style={styles.btnText}>🎤 (Passive Listening)</Text>
-      </TouchableOpacity>
+      {/* ३ डॉट मेनू (सिम्युलेटेड) */}
+      <View style={styles.header}>
+        <Text style={styles.title}>{aiName} AI</Text>
+        <TouchableOpacity><Text style={{color:'#FFF'}}>⋮</Text></TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.status}>Status: {status}</Text>
+        
+        {/* Dual Mode Switch */}
+        <View style={styles.modeContainer}>
+          <Text style={{color:'#FFF'}}>Mode: {mode}</Text>
+          <Switch value={mode === 'chat'} onValueChange={(v) => setMode(v ? 'chat' : 'voice')} />
+        </View>
+
+        {/* मेन बटण */}
+        <TouchableOpacity style={styles.mainBtn} onPress={() => Voice.start('mr-IN')}>
+          <Text style={styles.btnText}>🎤 {mode === 'voice' ? 'Listen' : 'Type Command'}</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F0F0F', justifyContent: 'center', padding: 20 },
-  title: { color: '#00FF9D', fontSize: 28, textAlign: 'center', marginBottom: 20 },
-  subtitle: { color: '#FFF', textAlign: 'center', marginBottom: 20 },
-  input: { backgroundColor: '#252525', color: '#FFF', padding: 15, borderRadius: 10, marginBottom: 10 },
-  button: { backgroundColor: '#00FF9D', padding: 15, borderRadius: 10, marginBottom: 10 },
-  voiceBtn: { backgroundColor: '#FF4757', padding: 20, borderRadius: 30, marginTop: 50 },
-  btnText: { textAlign: 'center', fontWeight: 'bold' }
+  container: { flex: 1, backgroundColor: '#0F0F0F' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 40, marginTop: 20 },
+  title: { color: '#00FF9D', fontSize: 24, fontWeight: 'bold' },
+  content: { alignItems: 'center', padding: 20 },
+  status: { color: '#FFF', marginBottom: 20 },
+  modeContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  mainBtn: { backgroundColor: '#00FF9D', padding: 30, borderRadius: 50, marginTop: 50 },
+  btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 }
 });
+
