@@ -1,76 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as Speech from 'expo-speech';
-import * as ScreenCapture from 'expo-screen-capture';
 import * as SQLite from 'expo-sqlite';
 import Voice from '@react-native-voice/voice';
-// 'expo-device-setting' ऐवजी आपण Linking वापरतोय जेणेकरून ॲप क्रॅश न होता सेटिंग उघडू शकेल
-import * as IntentLauncher from 'expo-intent-launcher'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const db = SQLite.openDatabaseSync('gamesDB');
 
 export default function App() {
-  const [gameName, setGameName] = useState('');
-  const [gameInfo, setGameInfo] = useState('');
+  const [setupDone, setSetupDone] = useState(false);
+  const [aiName, setAiName] = useState('');
+  const [language, setLanguage] = useState('mr-IN'); // मराठी बाय डिफॉल्ट
 
   useEffect(() => {
-    db.execSync('CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, info TEXT);');
-    
+    checkSetup();
     Voice.onSpeechResults = (e) => {
       const command = e.value ? e.value[0].toLowerCase() : "";
-      processCommand(command);
+      if (command.includes(aiName.toLowerCase())) {
+        Speech.speak("Ho, mi aiktoy!");
+      }
     };
+  }, [aiName]);
 
-    return () => { Voice.destroy().then(Voice.removeAllListeners); };
-  }, []);
-
-  const processCommand = (command) => {
-    // १. सिस्टम कंट्रोल (Settings)
-    if (command.includes("bluetooth")) {
-      IntentLauncher.startActivityAsync('android.settings.BLUETOOTH_SETTINGS');
-      Speech.speak("Bluetooth settings ughadtay.");
-    } 
-    else if (command.includes("internet") || command.includes("wifi")) {
-      IntentLauncher.startActivityAsync('android.settings.WIFI_SETTINGS');
-      Speech.speak("Internet settings ughadtay.");
-    }
-    // २. ॲप उघडणे (Open App)
-    else if (command.includes("open")) {
-      const appName = command.replace("open ", "");
-      Speech.speak(appName + " ughadtay.");
-      Linking.openURL(`market://details?id=com.${appName}`);
-    }
-    // ३. गेम माहिती (Database)
-    else {
-      const result = db.getAllSync('SELECT info FROM games WHERE name = ?;', [command.split(' ')[0]]);
-      if (result.length > 0) Speech.speak(result[0].info);
-      else Speech.speak("Mala hi gosht samajat nahi.");
+  const checkSetup = async () => {
+    const savedName = await AsyncStorage.getItem('aiName');
+    if (savedName) {
+      setAiName(savedName);
+      setSetupDone(true);
+      Voice.start('mr-IN'); // ॲप उघडताच ऐकायला सुरुवात करेल
     }
   };
 
+  const completeSetup = async () => {
+    await AsyncStorage.setItem('aiName', aiName);
+    setSetupDone(true);
+    Voice.start('mr-IN');
+  };
+
+  if (!setupDone) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Setup your AI Buddy</Text>
+        <TextInput placeholder="AI che naav dya (e.g. Buddy)" value={aiName} onChangeText={setAiName} style={styles.input} />
+        <TouchableOpacity style={styles.button} onPress={completeSetup}><Text>Set Name & Start</Text></TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>PFAAI - Advanced AI</Text>
-      
-      <TextInput placeholder="Game Name" value={gameName} onChangeText={setGameName} style={styles.input} />
-      <TextInput placeholder="Information" value={gameInfo} onChangeText={setGameInfo} style={styles.input} />
-      
-      <TouchableOpacity style={styles.button} onPress={() => db.runSync('INSERT INTO games (name, info) VALUES (?, ?);', [gameName, gameInfo])}>
-        <Text style={styles.btnText}>Save Info</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.voiceBtn} onPress={() => Voice.start('en-US')}>
-        <Text style={styles.btnText}>🎤 Speak (Command AI)</Text>
+      <Text style={styles.title}>Hello, I am {aiName}!</Text>
+      <Text style={{color: '#FFF'}}>Bhakta, fakt maza naav ghe ani mi active hoin.</Text>
+      <TouchableOpacity style={styles.voiceBtn} onPress={() => Voice.start('mr-IN')}>
+        <Text style={styles.btnText}>🎤 Always Listening</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 40, backgroundColor: '#0F0F0F' },
-  title: { color: '#00FF9D', fontSize: 24, marginBottom: 20 },
-  input: { backgroundColor: '#252525', color: '#FFF', padding: 10, marginBottom: 10, borderRadius: 5 },
-  button: { backgroundColor: '#444', padding: 15, borderRadius: 5, alignItems: 'center' },
-  voiceBtn: { backgroundColor: '#00FF9D', padding: 20, borderRadius: 30, marginTop: 20, alignItems: 'center' },
-  btnText: { color: '#000', fontWeight: 'bold' }
+  container: { flex: 1, padding: 40, backgroundColor: '#0F0F0F', justifyContent: 'center' },
+  title: { color: '#00FF9D', fontSize: 28, marginBottom: 20 },
+  input: { backgroundColor: '#252525', color: '#FFF', padding: 15, marginBottom: 10, borderRadius: 10 },
+  button: { backgroundColor: '#00FF9D', padding: 15, borderRadius: 10, alignItems: 'center' },
+  voiceBtn: { backgroundColor: '#FF4757', padding: 20, borderRadius: 30, marginTop: 50, alignItems: 'center' },
+  btnText: { color: '#FFF', fontWeight: 'bold' }
 });
