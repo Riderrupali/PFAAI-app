@@ -1,63 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import * as Speech from 'expo-speech';
-import Voice from '@react-native-voice/voice';
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabaseSync('gamesDB');
 
 export default function App() {
-  const [status, setStatus] = useState("Tap to talk");
+  const [gameName, setGameName] = useState('');
+  const [gameInfo, setGameInfo] = useState('');
+  const [status, setStatus] = useState("Ready");
 
   useEffect(() => {
-    // ॲप उघडल्यावर व्हॉइस लिसनर सेट करणे
-    Voice.onSpeechResults = (e) => {
-      const command = e.value ? e.value[0] : "";
-      setStatus("You said: " + command);
-      
-      if (command.toLowerCase().includes("hello")) {
-        Speech.speak("Hello! I am your personal best friend.");
-      }
-    };
-
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
+    db.execSync('CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, info TEXT);');
   }, []);
 
-  const startListening = async () => {
-    try {
-      setStatus("Listening...");
-      await Voice.start('en-US'); // इंग्रजी कमांडसाठी
-    } catch (e) {
-      Alert.alert("Error", "Could not start listening");
-    }
+  const saveInfo = () => {
+    db.runSync('INSERT INTO games (name, info) VALUES (?, ?);', [gameName, gameInfo]);
+    setStatus("Saved: " + gameName);
+    setGameName(''); setGameInfo('');
   };
 
-  const talkToMe = () => {
-    const greeting = "Hi! I am your personal best friend. Mi tuza personal AI friend aahe.";
-    Speech.speak(greeting, { language: 'mr' });
+  const getInfo = () => {
+    const result = db.getAllSync('SELECT info FROM games WHERE name = ?;', [gameName]);
+    if (result.length > 0) {
+      Speech.speak(result[0].info);
+    } else {
+      Speech.speak("Mala ya game baddal kahi mahiti nahi.");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.appName}>P F A A I</Text>
-      <Text style={styles.statusText}>{status}</Text>
-
-      <TouchableOpacity style={styles.mainButton} onPress={talkToMe}>
-        <Text style={styles.buttonText}>Talk to Best Friend</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.voiceButton} onPress={startListening}>
-        <Text style={styles.buttonText}>Voice Command</Text>
-      </TouchableOpacity>
+      <Text style={styles.title}>Game AI Manager</Text>
+      <TextInput placeholder="Game Name (e.g. Ludo)" value={gameName} onChangeText={setGameName} style={styles.input} />
+      <TextInput placeholder="Information (e.g. strategy)" value={gameInfo} onChangeText={setGameInfo} style={styles.input} multiline />
+      
+      <TouchableOpacity style={styles.button} onPress={saveInfo}><Text>Save Info</Text></TouchableOpacity>
+      <TouchableOpacity style={[styles.button, {backgroundColor: '#00FF9D'}]} onPress={getInfo}><Text>Ask AI about Game</Text></TouchableOpacity>
+      
+      <Text style={styles.status}>{status}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F0F' },
-  appName: { color: '#00FF9D', fontSize: 30, marginBottom: 20, fontWeight: 'bold' },
-  statusText: { color: '#FFF', marginBottom: 20 },
-  mainButton: { backgroundColor: '#252525', padding: 20, borderRadius: 20, marginBottom: 15 },
-  voiceButton: { backgroundColor: '#00FF9D', padding: 20, borderRadius: 20 },
-  buttonText: { color: '#000', fontWeight: 'bold' }
+  container: { flex: 1, padding: 50, backgroundColor: '#0F0F0F' },
+  title: { color: '#00FF9D', fontSize: 24, marginBottom: 20 },
+  input: { backgroundColor: '#252525', color: '#FFF', padding: 10, marginBottom: 10, borderRadius: 5 },
+  button: { backgroundColor: '#DDD', padding: 15, borderRadius: 5, marginBottom: 10, alignItems: 'center' },
+  status: { color: '#FFF', marginTop: 20 }
 });
-
