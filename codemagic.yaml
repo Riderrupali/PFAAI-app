@@ -6,9 +6,9 @@ workflows:
       node: 18
       java: 17
     scripts:
-      - name: Auto-fix AI Error and Install
+      - name: Fix AI Code and Install
         script: |
-          sed -i 's/"catalog:"/"*"/g' package.json
+          node -e "const fs=require('fs'); let d=fs.readFileSync('package.json','utf8'); fs.writeFileSync('package.json', d.replace(/\"catalog:\"/g, '\"*\"'));"
           npm install -g pnpm@9 --force
           COREPACK_DISABLE=1 pnpm install
       - name: Expo Prebuild
