@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import * as Speech from 'expo-speech';
 import * as ScreenCapture from 'expo-screen-capture';
 import * as SQLite from 'expo-sqlite';
 import Voice from '@react-native-voice/voice';
-
-// नवीन लायब्ररी जी आपण उपकरणाच्या सेटिंगसाठी वापरू
-import * as DeviceSetting from 'expo-device-setting'; 
+// 'expo-device-setting' ऐवजी आपण Linking वापरतोय जेणेकरून ॲप क्रॅश न होता सेटिंग उघडू शकेल
+import * as IntentLauncher from 'expo-intent-launcher'; 
 
 const db = SQLite.openDatabaseSync('gamesDB');
 
@@ -25,44 +24,53 @@ export default function App() {
     return () => { Voice.destroy().then(Voice.removeAllListeners); };
   }, []);
 
-  // व्हॉइस कमांड लॉजिक (इंटरनेट आणि ब्लूटूथसाठी)
   const processCommand = (command) => {
-    if (command.includes("bluetooth on")) {
-      DeviceSetting.on({ setting: 'BLUETOOTH' });
-      Speech.speak("Bluetooth on kela aahe.");
-    } else if (command.includes("bluetooth off")) {
-      DeviceSetting.off({ setting: 'BLUETOOTH' });
-      Speech.speak("Bluetooth off kela aahe.");
-    } else if (command.includes("internet on") || command.includes("wifi on")) {
-      DeviceSetting.on({ setting: 'WIFI' });
-      Speech.speak("Internet on kela aahe.");
-    } else if (command.includes("internet off") || command.includes("wifi off")) {
-      DeviceSetting.off({ setting: 'WIFI' });
-      Speech.speak("Internet off kela aahe.");
-    } else {
-      // गेमबद्दल माहिती शोधणे (जुनं लॉजिक)
+    // १. सिस्टम कंट्रोल (Settings)
+    if (command.includes("bluetooth")) {
+      IntentLauncher.startActivityAsync('android.settings.BLUETOOTH_SETTINGS');
+      Speech.speak("Bluetooth settings ughadtay.");
+    } 
+    else if (command.includes("internet") || command.includes("wifi")) {
+      IntentLauncher.startActivityAsync('android.settings.WIFI_SETTINGS');
+      Speech.speak("Internet settings ughadtay.");
+    }
+    // २. ॲप उघडणे (Open App)
+    else if (command.includes("open")) {
+      const appName = command.replace("open ", "");
+      Speech.speak(appName + " ughadtay.");
+      Linking.openURL(`market://details?id=com.${appName}`);
+    }
+    // ३. गेम माहिती (Database)
+    else {
       const result = db.getAllSync('SELECT info FROM games WHERE name = ?;', [command.split(' ')[0]]);
       if (result.length > 0) Speech.speak(result[0].info);
-      else Speech.speak("Mala samajat nahi aahe.");
+      else Speech.speak("Mala hi gosht samajat nahi.");
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>PFAAI - Master AI</Text>
+      <Text style={styles.title}>PFAAI - Advanced AI</Text>
       
-      {/* जुन्या सर्व गोष्टी तसेच आहेत... */}
+      <TextInput placeholder="Game Name" value={gameName} onChangeText={setGameName} style={styles.input} />
+      <TextInput placeholder="Information" value={gameInfo} onChangeText={setGameInfo} style={styles.input} />
+      
+      <TouchableOpacity style={styles.button} onPress={() => db.runSync('INSERT INTO games (name, info) VALUES (?, ?);', [gameName, gameInfo])}>
+        <Text style={styles.btnText}>Save Info</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.voiceBtn} onPress={() => Voice.start('en-US')}>
-        <Text style={styles.btnText}>🎤 Speak (Bluetooth/Internet/Game)</Text>
+        <Text style={styles.btnText}>🎤 Speak (Command AI)</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-// स्टाइल्स आधीसारख्याच...
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 40, backgroundColor: '#0F0F0F' },
   title: { color: '#00FF9D', fontSize: 24, marginBottom: 20 },
-  voiceBtn: { backgroundColor: '#00FF9D', padding: 20, borderRadius: 30, alignItems: 'center', marginTop: 20 },
+  input: { backgroundColor: '#252525', color: '#FFF', padding: 10, marginBottom: 10, borderRadius: 5 },
+  button: { backgroundColor: '#444', padding: 15, borderRadius: 5, alignItems: 'center' },
+  voiceBtn: { backgroundColor: '#00FF9D', padding: 20, borderRadius: 30, marginTop: 20, alignItems: 'center' },
   btnText: { color: '#000', fontWeight: 'bold' }
 });
