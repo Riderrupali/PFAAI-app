@@ -6,19 +6,16 @@ workflows:
       node: 20
       java: 17
     scripts:
-      - name: Clean Install and Build
+      - name: Clean Install
         script: |
           npm install -g pnpm@9 --force
-          COREPACK_DISABLE=1 pnpm install
+          pnpm install
       - name: Expo Prebuild
         script: |
           npx expo prebuild -p android --clean --no-install
-          pnpm install
       - name: Build APK
         script: |
-          export NODE_OPTIONS="--max-old-space-size=4096"
           cd android
           ./gradlew assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
-
