@@ -17,7 +17,6 @@ export default function App() {
   const [voiceType, setVoiceType] = useState('female');
   const [mode, setMode] = useState('voice');
   
-  // सर्व स्टेट्स - कोणतीही डिलीट केलेली नाहीत
   const [gameName, setGameName] = useState('');
   const [gameInfo, setGameInfo] = useState('');
   const [scenario, setScenario] = useState('');
@@ -26,7 +25,6 @@ export default function App() {
 
   useEffect(() => {
     initApp();
-    // जुनी टेबल आणि नवीन टेबल - दोन्ही
     db.execSync('CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, info TEXT);');
     db.execSync('CREATE TABLE IF NOT EXISTS game_experience (id INTEGER PRIMARY KEY AUTOINCREMENT, scenario TEXT, my_action TEXT, result TEXT);');
     
@@ -40,7 +38,7 @@ export default function App() {
 
   const initWakeWord = async () => {
     try {
-      const porcupineManager = await PorcupineManager.create("YOUR_PICOVOICE_ACCESS_KEY", (keywordIndex) => {
+      const porcupineManager = await PorcupineManager.create("Riderrupali170", (keywordIndex) => {
         if (keywordIndex >= 0) {
           Speech.speak("हो, मी ऐकतोय!", { pitch: voiceType === 'male' ? 0.8 : 1.2 });
           Voice.start('mr-IN');
@@ -164,3 +162,4 @@ const styles = StyleSheet.create({
   btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 },
   content: { alignItems: 'center' }
 });
+    
