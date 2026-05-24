@@ -21,8 +21,7 @@
     "expo-sqlite": "~13.2.0",
     "expo-intent-launcher": "~10.9.0",
     "expo-linking": "~6.2.2",
-    "@picovoice/porcupine-react-native": "2.2.0",
-    "expo-web-browser": "~12.8.0"
+    "@picovoice/porcupine-react-native": "2.2.0"
   }
 }
 
