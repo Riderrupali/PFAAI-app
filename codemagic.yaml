@@ -6,8 +6,10 @@ workflows:
       node: 18
       java: 17
     scripts:
-      - name: Install Dependencies
-        script: yarn install
+      - name: Fix Workspace and Install
+        script: |
+          touch yarn.lock
+          yarn install
       - name: Expo Prebuild
         script: npx expo prebuild -p android --clean
       - name: Build APK
