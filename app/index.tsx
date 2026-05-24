@@ -1,68 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import * as Speech from 'expo-speech';
-import * as SQLite from 'expo-sqlite';
-import Voice from '@react-native-voice/voice';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const db = SQLite.openDatabaseSync('gamesDB');
-
 export default function App() {
+  const [loading, setLoading] = useState(true);
   const [setupDone, setSetupDone] = useState(false);
-  const [aiName, setAiName] = useState('');
-  const [language, setLanguage] = useState('mr-IN'); // मराठी बाय डिफॉल्ट
+  const [step, setStep] = useState(1); // 1: Splash, 2: Language, 3: Name Setup
 
   useEffect(() => {
     checkSetup();
-    Voice.onSpeechResults = (e) => {
-      const command = e.value ? e.value[0].toLowerCase() : "";
-      if (command.includes(aiName.toLowerCase())) {
-        Speech.speak("Ho, mi aiktoy!");
-      }
-    };
-  }, [aiName]);
+  }, []);
 
   const checkSetup = async () => {
-    const savedName = await AsyncStorage.getItem('aiName');
-    if (savedName) {
-      setAiName(savedName);
-      setSetupDone(true);
-      Voice.start('mr-IN'); // ॲप उघडताच ऐकायला सुरुवात करेल
-    }
+    const isDone = await AsyncStorage.getItem('setupDone');
+    setTimeout(() => {
+      setLoading(false);
+      if (isDone === 'true') setSetupDone(true);
+    }, 2000); // 2 सेकंद Splash Screen
   };
 
   const completeSetup = async () => {
-    await AsyncStorage.setItem('aiName', aiName);
+    await AsyncStorage.setItem('setupDone', 'true');
     setSetupDone(true);
-    Voice.start('mr-IN');
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>PFAAI</Text>
+        <Text style={styles.subtitle}>Hi 👋☺️ I am your personal best friend</Text>
+        <ActivityIndicator size="large" color="#00FF9D" />
+      </View>
+    );
+  }
 
   if (!setupDone) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Setup your AI Buddy</Text>
-        <TextInput placeholder="AI che naav dya (e.g. Buddy)" value={aiName} onChangeText={setAiName} style={styles.input} />
-        <TouchableOpacity style={styles.button} onPress={completeSetup}><Text>Set Name & Start</Text></TouchableOpacity>
+        {step === 1 ? (
+          <>
+            <Text style={styles.title}>Select Language</Text>
+            {['English', 'मराठी', 'हिंदी'].map((lang) => (
+              <TouchableOpacity key={lang} style={styles.button} onPress={() => setStep(2)}>
+                <Text style={styles.btnText}>{lang}</Text>
+              </TouchableOpacity>
+            ))}
+          </>
+        ) : (
+          <>
+            <Text style={styles.title}>Setup Names</Text>
+            <TextInput placeholder="Your Name" style={styles.input} />
+            <TextInput placeholder="AI Buddy Name (e.g. PFAAI)" style={styles.input} />
+            <TouchableOpacity style={styles.button} onPress={completeSetup}>
+              <Text style={styles.btnText}>Complete Setup</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hello, I am {aiName}!</Text>
-      <Text style={{color: '#FFF'}}>Bhakta, fakt maza naav ghe ani mi active hoin.</Text>
-      <TouchableOpacity style={styles.voiceBtn} onPress={() => Voice.start('mr-IN')}>
-        <Text style={styles.btnText}>🎤 Always Listening</Text>
-      </TouchableOpacity>
+      <Text style={styles.title}>PFAAI Home</Text>
+      <Text style={styles.subtitle}>Ready to assist you!</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 40, backgroundColor: '#0F0F0F', justifyContent: 'center' },
-  title: { color: '#00FF9D', fontSize: 28, marginBottom: 20 },
-  input: { backgroundColor: '#252525', color: '#FFF', padding: 15, marginBottom: 10, borderRadius: 10 },
-  button: { backgroundColor: '#00FF9D', padding: 15, borderRadius: 10, alignItems: 'center' },
-  voiceBtn: { backgroundColor: '#FF4757', padding: 20, borderRadius: 30, marginTop: 50, alignItems: 'center' },
-  btnText: { color: '#FFF', fontWeight: 'bold' }
+  container: { flex: 1, backgroundColor: '#0F0F0F', justifyContent: 'center', padding: 20 },
+  title: { color: '#00FF9D', fontSize: 32, textAlign: 'center', marginBottom: 20 },
+  subtitle: { color: '#FFF', textAlign: 'center', marginBottom: 20 },
+  input: { backgroundColor: '#252525', color: '#FFF', padding: 15, borderRadius: 10, marginBottom: 10 },
+  button: { backgroundColor: '#00FF9D', padding: 15, borderRadius: 10, marginBottom: 10 },
+  btnText: { textAlign: 'center', fontWeight: 'bold' }
 });
