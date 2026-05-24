@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Switch } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Switch, Alert } from 'react-native';
 import * as Speech from 'expo-speech';
 import Voice from '@react-native-voice/voice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite';
 import * as IntentLauncher from 'expo-intent-launcher';
-import * as ScreenCapture from 'expo-screen-capture';
 import * as Linking from 'expo-linking';
 
 const db = SQLite.openDatabaseSync('gamesDB');
@@ -15,7 +14,10 @@ export default function App() {
   const [setupDone, setSetupDone] = useState(false);
   const [aiName, setAiName] = useState('PFAAI');
   const [mode, setMode] = useState('voice');
-  const [language, setLanguage] = useState('mr-IN');
+  
+  // नवीन फिचर्ससाठी स्टेट
+  const [gameName, setGameName] = useState('');
+  const [gameInfo, setGameInfo] = useState('');
 
   useEffect(() => {
     initApp();
@@ -35,20 +37,24 @@ export default function App() {
       if (done === 'true') {
         setSetupDone(true);
         setAiName(savedName || 'PFAAI');
-        Speech.speak("Hi, I am your personal best friend.", { language: 'en' });
       }
-    }, 2500);
+    }, 2000);
+  };
+
+  const saveGameInfo = () => {
+    db.runSync('INSERT INTO games (name, info) VALUES (?, ?);', [gameName, gameInfo]);
+    Alert.alert("Success", "मी हे शिकलो आहे!");
+    setGameName(''); setGameInfo('');
   };
 
   const processCommand = (command) => {
     if (command.includes("bluetooth")) IntentLauncher.startActivityAsync('android.settings.BLUETOOTH_SETTINGS');
     else if (command.includes("internet")) IntentLauncher.startActivityAsync('android.settings.WIFI_SETTINGS');
-    else if (command.includes("scan")) ScreenCapture.preventScreenCaptureAsync();
-    else if (command.includes("open")) Linking.openURL('market://details?id=com.whatsapp');
     else {
+      // डेटाबेसमधून माहिती शोधणे
       const result = db.getAllSync('SELECT info FROM games WHERE name = ?;', [command.split(' ')[0]]);
       if (result.length > 0) Speech.speak(result[0].info);
-      else Speech.speak("Mi he sikhnyacha prayatna karel.");
+      else Speech.speak("हे मला माहित नाही, कृपया मला शिकव.");
     }
   };
 
@@ -62,12 +68,12 @@ export default function App() {
   if (!setupDone) return (
     <View style={styles.container}>
       <Text style={styles.title}>Setup PFAAI</Text>
-      <TextInput placeholder="AI Name (e.g. Buddy)" onChangeText={setAiName} style={styles.input} />
+      <TextInput placeholder="AI Name" onChangeText={setAiName} style={styles.input} />
       <TouchableOpacity style={styles.button} onPress={async () => {
         await AsyncStorage.setItem('aiName', aiName);
         await AsyncStorage.setItem('setupDone', 'true');
         setSetupDone(true);
-      }}><Text style={styles.btnText}>Complete Setup</Text></TouchableOpacity>
+      }}><Text style={styles.btnText}>Start Now</Text></TouchableOpacity>
     </View>
   );
 
@@ -75,10 +81,15 @@ export default function App() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{aiName} AI</Text>
-        <Switch value={mode === 'chat'} onValueChange={(v) => setMode(v ? 'chat' : 'voice')} />
       </View>
+      
       <ScrollView contentContainerStyle={styles.content}>
-        <TouchableOpacity style={styles.mainBtn} onPress={() => Voice.start(language)}>
+        {/* शिकवण्यासाठी UI */}
+        <TextInput placeholder="Game/Topic Name" value={gameName} onChangeText={setGameName} style={styles.input} />
+        <TextInput placeholder="Information (Strategy/Notes)" value={gameInfo} onChangeText={setGameInfo} style={styles.input} />
+        <TouchableOpacity style={styles.button} onPress={saveGameInfo}><Text style={styles.btnText}>AI ला शिकव</Text></TouchableOpacity>
+
+        <TouchableOpacity style={styles.mainBtn} onPress={() => Voice.start('mr-IN')}>
           <Text style={styles.btnText}>🎤 Talk to {aiName}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -89,12 +100,12 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0F0F0F' },
   splashText: { color: '#FFF', fontSize: 20, textAlign: 'center', marginTop: 200 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 40, marginTop: 20 },
-  title: { color: '#00FF9D', fontSize: 24, fontWeight: 'bold' },
-  input: { backgroundColor: '#252525', color: '#FFF', padding: 15, borderRadius: 10, margin: 20 },
-  button: { backgroundColor: '#00FF9D', padding: 20, borderRadius: 10, margin: 20 },
-  mainBtn: { backgroundColor: '#00FF9D', padding: 30, borderRadius: 50, marginTop: 50 },
+  header: { padding: 40, marginTop: 20 },
+  title: { color: '#00FF9D', fontSize: 28, fontWeight: 'bold' },
+  input: { backgroundColor: '#252525', color: '#FFF', padding: 15, borderRadius: 10, marginHorizontal: 20, marginBottom: 10 },
+  button: { backgroundColor: '#00FF9D', padding: 15, borderRadius: 10, marginHorizontal: 20 },
+  mainBtn: { backgroundColor: '#FF4757', padding: 30, borderRadius: 50, marginTop: 30 },
   btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 },
   content: { alignItems: 'center' }
 });
-  
+          
