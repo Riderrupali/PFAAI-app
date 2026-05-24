@@ -1,14 +1,15 @@
+
 workflows:
   android-workflow:
     name: Android APK Build
     max_build_duration: 60
     environment:
-      node: 18
+      node: 22
       java: 17
     scripts:
       - name: Force Install pnpm & Dependencies
         script: |
-          npm install -g pnpm@latest --force
+          npm install -g pnpm@latest
           COREPACK_DISABLE=1 pnpm install
       - name: Expo Prebuild
         script: npx expo prebuild -p android --clean
