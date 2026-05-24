@@ -7,7 +7,7 @@ workflows:
       java: 17
     scripts:
       - name: Install Dependencies
-        script: pnpm install
+        script: yarn install
       - name: Expo Prebuild
         script: npx expo prebuild -p android --clean
       - name: Build APK
