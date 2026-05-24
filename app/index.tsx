@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as Linking from 'expo-linking';
+import { PorcupineManager } from "@picovoice/porcupine-react-native"; // नवीन लायब्ररी
 
 const db = SQLite.openDatabaseSync('gamesDB');
 
@@ -21,11 +22,30 @@ export default function App() {
   useEffect(() => {
     initApp();
     db.execSync('CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, info TEXT);');
+    
+    // १. नेहमी ऐकण्यासाठी (Always Listening Wake Word)
+    initWakeWord();
+
     Voice.onSpeechResults = (e) => {
       const cmd = e.value ? e.value[0].toLowerCase() : "";
       if (cmd.includes(aiName.toLowerCase())) processCommand(cmd);
     };
   }, [aiName]);
+
+  const initWakeWord = async () => {
+    try {
+      const porcupineManager = await PorcupineManager.create(
+        "YOUR_PICOVOICE_ACCESS_KEY", // इथे तुझी की टाक
+        (keywordIndex) => {
+          if (keywordIndex >= 0) {
+            Speech.speak("हो, मी ऐकतोय!", { pitch: voiceType === 'male' ? 0.8 : 1.2 });
+            Voice.start('mr-IN');
+          }
+        }
+      );
+      await porcupineManager.start();
+    } catch (err) { console.log("Wake word error:", err); }
+  };
 
   const initApp = async () => {
     const savedName = await AsyncStorage.getItem('aiName');
@@ -38,7 +58,6 @@ export default function App() {
         setSetupDone(true);
         setAiName(savedName || 'PFAAI');
         if (savedVoice) setVoiceType(savedVoice);
-        Speech.speak("Hi, I am your personal best friend.", { language: 'en' });
       }
     }, 2500);
   };
