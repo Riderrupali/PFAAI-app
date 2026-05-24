@@ -1,53 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as Speech from 'expo-speech';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ScreenCapture from 'expo-screen-capture';
+import * as SQLite from 'expo-sqlite';
+
+// १. डेटाबेस सेटअप
+const db = SQLite.openDatabaseSync('gamesDB');
 
 export default function App() {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [isVisionActive, setIsVisionActive] = useState(false);
+  const [status, setStatus] = useState("AI Ready");
 
-  // १. फासा ओळखण्याचे लॉजिक (Vision Simulation)
-  const handleBarcodeScanned = (scanningResult) => {
-    // इथे आपण स्क्रीनवरचे पिक्सेल्स स्कॅन करून फासा ओळखतो
-    // सध्या आपण 'Simulated AI' वापरत आहोत
-    Speech.speak("फासा 6 आला आहे. आता गोटी हलव!");
+  useEffect(() => {
+    // डेटाबेस टेबल तयार करा
+    db.execSync('CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, info TEXT);');
+    
+    // स्क्रीन कॅप्चर (Screen Sharing) सुरु करण्यासाठी परवानगी
+    const startCapture = async () => {
+      await ScreenCapture.preventScreenCaptureAsync(); // सुरक्षिततेसाठी
+    };
+    startCapture();
+  }, []);
+
+  // २. स्क्रीन स्कॅन लॉजिक (सिम्युलेटेड)
+  const scanScreen = () => {
+    setStatus("Scanning screen...");
+    // इथे आपण स्क्रीनचा डेटा वाचतोय असे समजू
+    setTimeout(() => {
+      Speech.speak("Screen scan zali. Ludo madhe tuza 6 aala aahe, aata gotti halal.");
+      setStatus("Scan Complete");
+    }, 2000);
   };
-
-  if (!permission) return <View />;
-  if (!permission.granted) {
-    return (
-      <View style={styles.container}>
-        <Text style={{color:'white'}}>कॅमेरा परमिशन हवी आहे!</Text>
-        <TouchableOpacity onPress={requestPermission}><Text style={styles.btnText}>Allow Access</Text></TouchableOpacity>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
-      {isVisionActive ? (
-        <CameraView 
-          style={StyleSheet.absoluteFillObject} 
-          onBarcodeScanned={handleBarcodeScanned} // फासा स्कॅन करण्यासाठी
-        />
-      ) : (
-        <View style={styles.menu}>
-          <Text style={styles.title}>PFAAI Vision AI</Text>
-          <TouchableOpacity style={styles.mainButton} onPress={() => setIsVisionActive(true)}>
-            <Text style={styles.btnText}>Start Game Vision</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <Text style={styles.title}>PFAAI - Live Screen AI</Text>
+      
+      <TouchableOpacity style={styles.scanBtn} onPress={scanScreen}>
+        <Text style={styles.btnText}>Scan & Help (Screen Share)</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.status}>{status}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F0F0F', justifyContent: 'center' },
-  menu: { alignItems: 'center' },
-  title: { color: '#00FF9D', fontSize: 30, marginBottom: 50 },
-  mainButton: { backgroundColor: '#00FF9D', padding: 20, borderRadius: 30 },
-  btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 }
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F0F' },
+  title: { color: '#00FF9D', fontSize: 24, marginBottom: 50 },
+  scanBtn: { backgroundColor: '#00FF9D', padding: 25, borderRadius: 30 },
+  btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 },
+  status: { color: '#FFF', marginTop: 20 }
 });
-
