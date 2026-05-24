@@ -13,16 +13,14 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [setupDone, setSetupDone] = useState(false);
   const [aiName, setAiName] = useState('PFAAI');
+  const [voiceType, setVoiceType] = useState('female');
   const [mode, setMode] = useState('voice');
-  
-  // नवीन फिचर्ससाठी स्टेट
   const [gameName, setGameName] = useState('');
   const [gameInfo, setGameInfo] = useState('');
 
   useEffect(() => {
     initApp();
     db.execSync('CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, info TEXT);');
-    
     Voice.onSpeechResults = (e) => {
       const cmd = e.value ? e.value[0].toLowerCase() : "";
       if (cmd.includes(aiName.toLowerCase())) processCommand(cmd);
@@ -32,13 +30,17 @@ export default function App() {
   const initApp = async () => {
     const savedName = await AsyncStorage.getItem('aiName');
     const done = await AsyncStorage.getItem('setupDone');
+    const savedVoice = await AsyncStorage.getItem('voiceType');
+    
     setTimeout(() => {
       setLoading(false);
       if (done === 'true') {
         setSetupDone(true);
         setAiName(savedName || 'PFAAI');
+        if (savedVoice) setVoiceType(savedVoice);
+        Speech.speak("Hi, I am your personal best friend.", { language: 'en' });
       }
-    }, 2000);
+    }, 2500);
   };
 
   const saveGameInfo = () => {
@@ -50,11 +52,12 @@ export default function App() {
   const processCommand = (command) => {
     if (command.includes("bluetooth")) IntentLauncher.startActivityAsync('android.settings.BLUETOOTH_SETTINGS');
     else if (command.includes("internet")) IntentLauncher.startActivityAsync('android.settings.WIFI_SETTINGS');
+    else if (command.includes("open")) Linking.openURL('market://details?id=com.whatsapp');
     else {
-      // डेटाबेसमधून माहिती शोधणे
       const result = db.getAllSync('SELECT info FROM games WHERE name = ?;', [command.split(' ')[0]]);
-      if (result.length > 0) Speech.speak(result[0].info);
-      else Speech.speak("हे मला माहित नाही, कृपया मला शिकव.");
+      if (result.length > 0) {
+        Speech.speak(result[0].info, { pitch: voiceType === 'male' ? 0.8 : 1.2 });
+      } else Speech.speak("हे मला माहित नाही, कृपया मला शिकव.");
     }
   };
 
@@ -81,12 +84,18 @@ export default function App() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{aiName} AI</Text>
+        <Switch value={mode === 'chat'} onValueChange={(v) => setMode(v ? 'chat' : 'voice')} />
       </View>
       
       <ScrollView contentContainerStyle={styles.content}>
-        {/* शिकवण्यासाठी UI */}
+        <Text style={{color:'#FFF'}}>आवाज निवडा:</Text>
+        <View style={{flexDirection: 'row', marginBottom: 20}}>
+            <TouchableOpacity onPress={() => setVoiceType('male')} style={styles.smallBtn}><Text>Male</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => setVoiceType('female')} style={styles.smallBtn}><Text>Female</Text></TouchableOpacity>
+        </View>
+
         <TextInput placeholder="Game/Topic Name" value={gameName} onChangeText={setGameName} style={styles.input} />
-        <TextInput placeholder="Information (Strategy/Notes)" value={gameInfo} onChangeText={setGameInfo} style={styles.input} />
+        <TextInput placeholder="Information (Strategy)" value={gameInfo} onChangeText={setGameInfo} style={styles.input} />
         <TouchableOpacity style={styles.button} onPress={saveGameInfo}><Text style={styles.btnText}>AI ला शिकव</Text></TouchableOpacity>
 
         <TouchableOpacity style={styles.mainBtn} onPress={() => Voice.start('mr-IN')}>
@@ -100,12 +109,13 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0F0F0F' },
   splashText: { color: '#FFF', fontSize: 20, textAlign: 'center', marginTop: 200 },
-  header: { padding: 40, marginTop: 20 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 40, marginTop: 20 },
   title: { color: '#00FF9D', fontSize: 28, fontWeight: 'bold' },
   input: { backgroundColor: '#252525', color: '#FFF', padding: 15, borderRadius: 10, marginHorizontal: 20, marginBottom: 10 },
   button: { backgroundColor: '#00FF9D', padding: 15, borderRadius: 10, marginHorizontal: 20 },
+  smallBtn: { backgroundColor: '#DDD', padding: 10, margin: 5, borderRadius: 5 },
   mainBtn: { backgroundColor: '#FF4757', padding: 30, borderRadius: 50, marginTop: 30 },
   btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 },
   content: { alignItems: 'center' }
 });
-          
+    
