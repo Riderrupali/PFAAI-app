@@ -13,7 +13,9 @@ workflows:
           COREPACK_DISABLE=1 pnpm install
           pnpm add expo-camera
       - name: Expo Prebuild
-        script: npx expo prebuild -p android --clean
+        script: |
+          npx expo prebuild -p android --clean --no-install
+          pnpm install
       - name: Build APK
         script: |
           cd android
