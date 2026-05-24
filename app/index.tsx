@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as Linking from 'expo-linking';
-import { PorcupineManager } from "@picovoice/porcupine-react-native"; // नवीन लायब्ररी
+import { PorcupineManager } from "@picovoice/porcupine-react-native";
 
 const db = SQLite.openDatabaseSync('gamesDB');
 
@@ -16,14 +16,20 @@ export default function App() {
   const [aiName, setAiName] = useState('PFAAI');
   const [voiceType, setVoiceType] = useState('female');
   const [mode, setMode] = useState('voice');
+  
+  // सर्व स्टेट्स - कोणतीही डिलीट केलेली नाहीत
   const [gameName, setGameName] = useState('');
   const [gameInfo, setGameInfo] = useState('');
+  const [scenario, setScenario] = useState('');
+  const [action, setAction] = useState('');
+  const [result, setResult] = useState('');
 
   useEffect(() => {
     initApp();
+    // जुनी टेबल आणि नवीन टेबल - दोन्ही
     db.execSync('CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, info TEXT);');
+    db.execSync('CREATE TABLE IF NOT EXISTS game_experience (id INTEGER PRIMARY KEY AUTOINCREMENT, scenario TEXT, my_action TEXT, result TEXT);');
     
-    // १. नेहमी ऐकण्यासाठी (Always Listening Wake Word)
     initWakeWord();
 
     Voice.onSpeechResults = (e) => {
@@ -34,15 +40,12 @@ export default function App() {
 
   const initWakeWord = async () => {
     try {
-      const porcupineManager = await PorcupineManager.create(
-        "YOUR_PICOVOICE_ACCESS_KEY", // इथे तुझी की टाक
-        (keywordIndex) => {
-          if (keywordIndex >= 0) {
-            Speech.speak("हो, मी ऐकतोय!", { pitch: voiceType === 'male' ? 0.8 : 1.2 });
-            Voice.start('mr-IN');
-          }
+      const porcupineManager = await PorcupineManager.create("YOUR_PICOVOICE_ACCESS_KEY", (keywordIndex) => {
+        if (keywordIndex >= 0) {
+          Speech.speak("हो, मी ऐकतोय!", { pitch: voiceType === 'male' ? 0.8 : 1.2 });
+          Voice.start('mr-IN');
         }
-      );
+      });
       await porcupineManager.start();
     } catch (err) { console.log("Wake word error:", err); }
   };
@@ -58,6 +61,7 @@ export default function App() {
         setSetupDone(true);
         setAiName(savedName || 'PFAAI');
         if (savedVoice) setVoiceType(savedVoice);
+        Speech.speak("Hi, I am your personal best friend.", { language: 'en' });
       }
     }, 2500);
   };
@@ -68,10 +72,26 @@ export default function App() {
     setGameName(''); setGameInfo('');
   };
 
+  const saveExperience = () => {
+    db.runSync('INSERT INTO game_experience (scenario, my_action, result) VALUES (?, ?, ?);', [scenario, action, result]);
+    Alert.alert("Success", "अनुभव साठवला!");
+    setScenario(''); setAction(''); setResult('');
+  };
+
+  const getExpertAdvice = (currentScenario) => {
+    const advice = db.getAllSync('SELECT my_action FROM game_experience WHERE scenario = ? AND result = "win" LIMIT 1;', [currentScenario]);
+    if (advice.length > 0) {
+      Speech.speak("अनुभवानुसार, या परिस्थितीत तू " + advice[0].my_action + " केले होतेस आणि तू जिंकला होतास.", { pitch: voiceType === 'male' ? 0.8 : 1.2 });
+    } else {
+      Speech.speak("हा अनुभव माझ्याकडे नाही, तू स्वतः ठरव.");
+    }
+  };
+
   const processCommand = (command) => {
     if (command.includes("bluetooth")) IntentLauncher.startActivityAsync('android.settings.BLUETOOTH_SETTINGS');
     else if (command.includes("internet")) IntentLauncher.startActivityAsync('android.settings.WIFI_SETTINGS');
     else if (command.includes("open")) Linking.openURL('market://details?id=com.whatsapp');
+    else if (command.includes("advice")) getExpertAdvice(command.split(' ')[1]);
     else {
       const result = db.getAllSync('SELECT info FROM games WHERE name = ?;', [command.split(' ')[0]]);
       if (result.length > 0) {
@@ -109,13 +129,20 @@ export default function App() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={{color:'#FFF'}}>आवाज निवडा:</Text>
         <View style={{flexDirection: 'row', marginBottom: 20}}>
-            <TouchableOpacity onPress={() => setVoiceType('male')} style={styles.smallBtn}><Text>Male</Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => setVoiceType('female')} style={styles.smallBtn}><Text>Female</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => {setVoiceType('male'); AsyncStorage.setItem('voiceType', 'male');}} style={styles.smallBtn}><Text>Male</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => {setVoiceType('female'); AsyncStorage.setItem('voiceType', 'female');}} style={styles.smallBtn}><Text>Female</Text></TouchableOpacity>
         </View>
 
-        <TextInput placeholder="Game/Topic Name" value={gameName} onChangeText={setGameName} style={styles.input} />
-        <TextInput placeholder="Information (Strategy)" value={gameInfo} onChangeText={setGameInfo} style={styles.input} />
+        <TextInput placeholder="Game Name" value={gameName} onChangeText={setGameName} style={styles.input} />
+        <TextInput placeholder="Strategy" value={gameInfo} onChangeText={setGameInfo} style={styles.input} />
         <TouchableOpacity style={styles.button} onPress={saveGameInfo}><Text style={styles.btnText}>AI ला शिकव</Text></TouchableOpacity>
+
+        <View style={{height: 20}} />
+
+        <TextInput placeholder="Scenario" value={scenario} onChangeText={setScenario} style={styles.input} />
+        <TextInput placeholder="Action" value={action} onChangeText={setAction} style={styles.input} />
+        <TextInput placeholder="Result" value={result} onChangeText={setResult} style={styles.input} />
+        <TouchableOpacity style={styles.button} onPress={saveExperience}><Text style={styles.btnText}>अनुभव साठव</Text></TouchableOpacity>
 
         <TouchableOpacity style={styles.mainBtn} onPress={() => Voice.start('mr-IN')}>
           <Text style={styles.btnText}>🎤 Talk to {aiName}</Text>
@@ -137,4 +164,3 @@ const styles = StyleSheet.create({
   btnText: { color: '#000', fontWeight: 'bold', fontSize: 18 },
   content: { alignItems: 'center' }
 });
-    
