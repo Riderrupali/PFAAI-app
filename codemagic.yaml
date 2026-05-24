@@ -6,8 +6,9 @@ workflows:
       node: 18
       java: 17
     scripts:
-      - name: Install pnpm 9
+      - name: Auto-fix AI Error and Install
         script: |
+          sed -i 's/"catalog:"/"*"/g' package.json
           npm install -g pnpm@9 --force
           COREPACK_DISABLE=1 pnpm install
       - name: Expo Prebuild
@@ -18,3 +19,4 @@ workflows:
           ./gradlew assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
+      
