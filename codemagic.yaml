@@ -10,12 +10,12 @@ workflows:
         script: |
           node -e "const fs=require('fs'); let d=fs.readFileSync('package.json','utf8'); fs.writeFileSync('package.json', d.replace(/\"catalog:\"/g, '\"*\"'));"
           npm install -g pnpm@9 --force
-          COREPACK_DISABLE=1 pnpm install
+          COREPACK_DISABLE=1 pnpm install --no-frozen-lockfile
           pnpm add expo-camera
       - name: Expo Prebuild
         script: |
           npx expo prebuild -p android --clean --no-install
-          pnpm install
+          pnpm install --no-frozen-lockfile
       - name: Build APK
         script: |
           cd android
