@@ -37,7 +37,6 @@
           "origin": "https://replit.com/"
         }
       ],
-      "expo-font",
       "expo-camera"
     ],
     "experiments": {
