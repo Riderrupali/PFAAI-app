@@ -6,10 +6,10 @@ workflows:
       node: 18
       java: 17
     scripts:
-      - name: Fix Workspace and Install
+      - name: Force Install pnpm & Dependencies
         script: |
-          touch yarn.lock
-          yarn install
+          npm install -g pnpm@latest --force
+          COREPACK_DISABLE=1 pnpm install
       - name: Expo Prebuild
         script: npx expo prebuild -p android --clean
       - name: Build APK
