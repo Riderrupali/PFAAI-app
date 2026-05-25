@@ -14,10 +14,14 @@ workflows:
         script: |
           rm -rf android
           npx expo prebuild --platform android --clean
+      - name: Set Android SDK Path
+        script: |
+          # ही स्टेप Android SDK चा पाथ सेट करते, ज्यामुळे path null चा एरर येणार नाही
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
       - name: Build APK
         script: |
           cd android
-          # आपण इथून ग्रॅडलला 'project.ext' वापरून माहिती देत आहोत
+          # ग्रॅडलला प्रोजेक्ट पाथ स्पष्टपणे सांगणे
           ./gradlew assembleRelease -Pexpo.project.app.path=app
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
