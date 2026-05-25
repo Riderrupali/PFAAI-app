@@ -12,7 +12,7 @@ workflows:
           pnpm install
       - name: Expo Prebuild
         script: |
-          npx expo prebuild -p android --clean --no-install
+          npx expo prebuild --platform android --clean
       - name: Build APK
         script: |
           cd android
