@@ -13,8 +13,8 @@ workflows:
       - name: Expo Prebuild
         script: |
           rm -rf android
-          npx expo prebuild --platform android --clean
-      # 'Fix Build Gradle' स्टेप पूर्णपणे काढून टाकली आहे
+          # --no-cache वापरल्याने कोणतीही जुनी फाईल वापरली जाणार नाही
+          npx expo prebuild --platform android --clean --no-cache
       - name: Build APK
         script: |
           cd android
