@@ -20,10 +20,12 @@
         "NSMicrophoneUsageDescription": "PFAAI uses microphone to listen to your voice commands."
       }
     },
-    "android": {
-          "android": {
-      "package": "com.riderrupali.pfaai"
-          }
+        "android": {
+      "package": "com.riderrupali.pfaai",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#0A0E27"
+    },
       
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#0A0E27"
