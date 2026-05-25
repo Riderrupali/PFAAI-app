@@ -22,10 +22,10 @@
     },
     "android": {
       "package": "com.riderrupali.pfaai",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#0A0E27"
+      }
     },
     "web": {
       "favicon": "./assets/images/icon.png"
