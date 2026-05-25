@@ -2,22 +2,15 @@
   "expo": {
     "name": "PFAAI - Personal Friend Assistant AI",
     "slug": "pfaai",
-    "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0"
-          }
-        }
-      ]
+    "version": "1.0.0",
+    "sdkVersion": "51.0.0",
+    "platforms": [
+      "android",
+      "ios",
+      "web"
     ],
     "android": {
-      "package": "com.riderrupali.pfaai",
-      "versionCode": 1,
-      "versionName": "1.0.0"
+      "package": "com.riderrupali.pfaai"
     }
   }
 }
