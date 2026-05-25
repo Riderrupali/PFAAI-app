@@ -16,20 +16,8 @@ workflows:
           npx expo prebuild --platform android --clean
       - name: Fix Build Gradle
         script: |
-          # आपण पूर्णपणे नवीन आणि सुरक्षित build.gradle फाईल बनवतोय
-          echo "apply plugin: 'com.android.application'
-          
-          android {
-              namespace 'com.riderrupali.pfaai'
-              compileSdkVersion 34
-              defaultConfig {
-                  applicationId 'com.riderrupali.pfaai'
-                  minSdkVersion 23
-                  targetSdkVersion 34
-                  versionCode 1
-                  versionName '1.0.0'
-              }
-          }" > android/app/build.gradle
+          # पूर्ण फाईल बदलण्याऐवजी, फक्त gradle.properties मध्ये नेमस्पेस जोडत आहोत
+          echo "android.namespace=com.riderrupali.pfaai" >> android/gradle.properties
       - name: Build APK
         script: |
           cd android
