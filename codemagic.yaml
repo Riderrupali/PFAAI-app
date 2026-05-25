@@ -15,10 +15,14 @@ workflows:
         script: |
           rm -rf android
           npx expo prebuild --platform android --clean
+      - name: Fix Build Gradle
+        script: |
+          # ही कमांड सुनिश्चित करते की app मॉड्यूल नीट ओळखले जाईल
+          echo "include ':app'" > android/settings.gradle
       - name: Build APK
         script: |
           cd android
-          ./gradlew assembleRelease
+          ./gradlew :app:assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
