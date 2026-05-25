@@ -12,10 +12,9 @@ workflows:
           pnpm install
       - name: Expo Prebuild
         script: |
+          # जुन्या फाइल्स काढून टाकण्यासाठी कमांड
+          rm -rf android
           npx expo prebuild --platform android --clean
-      - name: Check Android Directory
-        script: |
-          ls -R android
       - name: Build APK
         script: |
           cd android
