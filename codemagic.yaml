@@ -14,17 +14,11 @@ workflows:
         script: |
           rm -rf android
           npx expo prebuild --platform android --clean
-      - name: Configure Gradle Properties
-        script: |
-          # ग्रॅडलला प्रोजेक्टचे पाथ आणि नेमस्पेस फाईलद्वारे सक्तीने देणे
-          echo "android.namespace=com.riderrupali.pfaai" >> android/gradle.properties
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
       - name: Build APK
         script: |
           cd android
-          # ग्रॅडल बिल्ड करताना Namespace आणि App पाथ पुन्हा स्पष्ट करणे
-          ./gradlew assembleRelease -Pandroid.namespace=com.riderrupali.pfaai -Pexpo.project.app.path=app
+          # आता हे कमांड न वापरता थेट ग्रॅडल रन करू
+          ./gradlew assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
