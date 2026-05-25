@@ -6,19 +6,17 @@ workflows:
       node: 20
       java: 17
     scripts:
-      - name: Force Clean Everything
+      - name: Force Clean
         script: |
-          # हे कोडमॅजिकच्या कॅशला बायपास करून सर्व जुन्या फाइल्स उडवेल
-          rm -rf node_modules
           rm -rf android
-          npm install
       - name: Expo Prebuild
         script: |
           npx expo prebuild --platform android --clean
       - name: Build APK
         script: |
           cd android
-          ./gradlew assembleRelease --no-daemon
+          # इथे आपण पाथ फिक्स करण्यासाठी एक छोटी कमांड टाकत आहोत
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file="" 
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
