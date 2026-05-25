@@ -6,17 +6,18 @@ workflows:
       node: 20
       java: 17
     scripts:
-      - name: Install dependencies
+      - name: Force Clean Everything
         script: |
+          # हे कोडमॅजिकच्या कॅशला बायपास करून सर्व जुन्या फाइल्स उडवेल
+          rm -rf node_modules
+          rm -rf android
           npm install
       - name: Expo Prebuild
         script: |
-          rm -rf android
           npx expo prebuild --platform android --clean
       - name: Build APK
         script: |
           cd android
-          # या कमांडमुळे null path एरर येणार नाही
           ./gradlew assembleRelease --no-daemon
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
