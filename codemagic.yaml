@@ -14,7 +14,7 @@ workflows:
       - name: Expo Prebuild
         script: |
           rm -rf android
-          npx expo prebuild --platform android --clean --no-bundler
+          npx expo prebuild --platform android --clean
       - name: Build APK
         script: |
           cd android
