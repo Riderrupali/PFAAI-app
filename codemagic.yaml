@@ -10,19 +10,14 @@ workflows:
         script: |
           npm install -g pnpm@9 --force
           pnpm install
-          npx expo install expo-build-properties
       - name: Expo Prebuild
         script: |
           rm -rf android
           npx expo prebuild --platform android --clean
-      - name: Fix Build Gradle
-        script: |
-          # ही कमांड सुनिश्चित करते की app मॉड्यूल नीट ओळखले जाईल
-          echo "include ':app'" > android/settings.gradle
       - name: Build APK
         script: |
           cd android
-          ./gradlew :app:assembleRelease
+          ./gradlew assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
