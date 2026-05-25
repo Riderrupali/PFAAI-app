@@ -1,0 +1,14 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "com.riderrupali.pfaai"
+    compileSdkVersion 34
+
+    defaultConfig {
+        applicationId "com.riderrupali.pfaai"
+        minSdkVersion 23
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+}
