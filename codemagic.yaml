@@ -6,10 +6,9 @@ workflows:
       node: 20
       java: 17
     scripts:
-      - name: Clean Install
+      - name: Install dependencies
         script: |
-          npm install -g pnpm@9 --force
-          pnpm install
+          npm install
       - name: Expo Prebuild
         script: |
           rm -rf android
