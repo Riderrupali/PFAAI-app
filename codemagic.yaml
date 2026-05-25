@@ -8,17 +8,19 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
-          # --force वापरल्यामुळे काहीही अडकणार नाही
           npm install --force
       - name: Expo Prebuild
         script: |
-          # प्रीबिल्डच्या आधी एक्सपो इन्स्टॉल झाल्याची खात्री करा
-          npx expo install --check
+          rm -rf android
           npx expo prebuild --platform android --clean
+      - name: Create local.properties
+        script: |
+          # हा कोड 'path' एरर फिक्स करण्यासाठी आवश्यक फाईल तयार करेल
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
       - name: Build APK
         script: |
           cd android
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --no-daemon
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
