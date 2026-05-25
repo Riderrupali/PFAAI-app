@@ -12,14 +12,13 @@ workflows:
       - name: Expo Prebuild
         script: |
           rm -rf android
+          # --no-bundler काढून टाकले आहे आणि हे अधिक सुरक्षित आहे
           npx expo prebuild --platform android --clean
-      - name: Check files
-        script: |
-          ls -R android/
       - name: Build APK
         script: |
           cd android
-          ./gradlew assembleRelease
+          # ग्रॅडलला 'app' मॉड्यूलवर लक्ष केंद्रित करायला सांगूया
+          ./gradlew :app:assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
