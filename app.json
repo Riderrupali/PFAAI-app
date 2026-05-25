@@ -21,8 +21,10 @@
       }
     },
     "android": {
-      "package": "com.riderrupali.pfaai",
-      "adaptiveIcon": {
+          "android": {
+      "package": "com.riderrupali.pfaai"
+          }
+      
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#0A0E27"
       }
