@@ -15,7 +15,8 @@
       ]
     ],
     "android": {
-      "package": "com.riderrupali.pfaai"
+      "package": "com.riderrupali.pfaai",
+      "versionCode": 1,
+      "versionName": "1.0.0"
     }
-  }
-}
+    
