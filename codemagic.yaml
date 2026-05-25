@@ -17,8 +17,8 @@ workflows:
       - name: Build APK
         script: |
           cd android
-          # इथे आपण namespace आपोआप येण्यासाठी ही कमांड वापरूया
-          ./gradlew assembleRelease -Pandroid.namespace=com.riderrupali.pfaai
+          # आपण इथून ग्रॅडलला 'project.ext' वापरून माहिती देत आहोत
+          ./gradlew assembleRelease -Pexpo.project.app.path=app
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
