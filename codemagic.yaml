@@ -13,6 +13,9 @@ workflows:
       - name: Expo Prebuild
         script: |
           npx expo prebuild --platform android --clean
+      - name: Check Android Directory
+        script: |
+          ls -R android
       - name: Build APK
         script: |
           cd android
