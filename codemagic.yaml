@@ -17,7 +17,6 @@ workflows:
       - name: Build APK
         script: |
           cd android
-          # आता हे कमांड न वापरता थेट ग्रॅडल रन करू
           ./gradlew assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
