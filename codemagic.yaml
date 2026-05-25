@@ -10,10 +10,11 @@ workflows:
         script: |
           npm install -g pnpm@9 --force
           pnpm install
+          npx expo install expo-build-properties
       - name: Expo Prebuild
         script: |
           rm -rf android
-          npx expo prebuild --platform android --clean
+          npx expo prebuild --platform android --clean --no-bundler
       - name: Build APK
         script: |
           cd android
