@@ -14,14 +14,12 @@ workflows:
         script: |
           rm -rf android
           npx expo prebuild --platform android --clean
-      - name: Fix Build Gradle
-        script: |
-          # पूर्ण फाईल बदलण्याऐवजी, फक्त gradle.properties मध्ये नेमस्पेस जोडत आहोत
-          echo "android.namespace=com.riderrupali.pfaai" >> android/gradle.properties
+      # 'Fix Build Gradle' स्टेप पूर्णपणे काढून टाकली आहे
       - name: Build APK
         script: |
           cd android
-          ./gradlew assembleRelease
+          # इथे आपण namespace आपोआप येण्यासाठी ही कमांड वापरूया
+          ./gradlew assembleRelease -Pandroid.namespace=com.riderrupali.pfaai
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
