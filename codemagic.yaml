@@ -13,12 +13,6 @@ workflows:
         script: |
           rm -rf android
           npx expo prebuild --platform android --clean
-      - name: Force Fix Settings Gradle
-        script: |
-          # हा एरर फिक्स करण्यासाठी आपण ही फाईल पुन्हा तयार करत आहोत
-          echo "apply from: '../node_modules/react-native/gradle/react.gradle'" > android/settings.gradle
-          echo "apply from: file('../node_modules/@react-native-community/cli-platform-android/native_modules.gradle'); applyNativeModulesSettingsGradle(settings)" >> android/settings.gradle
-          echo "include ':app'" >> android/settings.gradle
       - name: Build APK
         script: |
           cd android
