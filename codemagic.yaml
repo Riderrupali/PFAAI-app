@@ -12,14 +12,12 @@ workflows:
           pnpm install
       - name: Expo Prebuild
         script: |
-          # सर्व जुन्या फाइल्स साफ करणे
           rm -rf android
-          # पुन्हा नवीन बिल्ड तयार करणे
           npx expo prebuild --platform android --clean
       - name: Fix Build Gradle
         script: |
-          # हा कोड आपोआप build.gradle फाईल मध्ये योग्य व्हॅल्यू टाकण्यासाठी आहे
-          echo "android.namespace=com.riderrupali.pfaai" > android/gradle.properties
+          # इथे आपण namespace आणि इतर गोष्टी थेट app/build.gradle मध्ये टाकतोय
+          echo "android { namespace 'com.riderrupali.pfaai' }" >> android/app/build.gradle
       - name: Build APK
         script: |
           cd android
