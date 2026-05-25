@@ -6,17 +6,19 @@ workflows:
       node: 20
       java: 17
     scripts:
-      - name: Force Clean
+      - name: Install dependencies
         script: |
-          rm -rf android
+          # --force वापरल्यामुळे काहीही अडकणार नाही
+          npm install --force
       - name: Expo Prebuild
         script: |
+          # प्रीबिल्डच्या आधी एक्सपो इन्स्टॉल झाल्याची खात्री करा
+          npx expo install --check
           npx expo prebuild --platform android --clean
       - name: Build APK
         script: |
           cd android
-          # इथे आपण पाथ फिक्स करण्यासाठी एक छोटी कमांड टाकत आहोत
-          ./gradlew assembleRelease -Pandroid.injected.signing.store.file="" 
+          ./gradlew assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/**/*.apk
       
