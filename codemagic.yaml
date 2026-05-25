@@ -13,8 +13,7 @@ workflows:
       - name: Expo Prebuild
         script: |
           rm -rf android
-          # --no-cache वापरल्याने कोणतीही जुनी फाईल वापरली जाणार नाही
-          npx expo prebuild --platform android --clean --no-cache
+          npx expo prebuild --platform android --clean
       - name: Build APK
         script: |
           cd android
