@@ -2,50 +2,20 @@
   "expo": {
     "name": "PFAAI - Personal Friend Assistant AI",
     "slug": "pfaai",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "pfaai",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0A0E27"
-    },
-    "ios": {
-      "supportsTablet": false,
-      "infoPlist": {
-        "NSCameraUsageDescription": "PFAAI uses camera to see your screen and help you in real time.",
-        "NSMicrophoneUsageDescription": "PFAAI uses microphone to listen to your voice commands."
-      }
-    },
-        "android": {
-      "package": "com.riderrupali.pfaai",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#0A0E27"
-    },
-      
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#0A0E27"
-      }
-    },
-    "web": {
-      "favicon": "./assets/images/icon.png"
-    },
     "plugins": [
       [
-        "expo-router",
+        "expo-build-properties",
         {
-          "origin": "https://replit.com/"
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0"
+          }
         }
-      ],
-      "expo-camera"
+      ]
     ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+    "android": {
+      "package": "com.riderrupali.pfaai"
     }
   }
-
+}
